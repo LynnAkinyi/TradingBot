@@ -1,0 +1,99 @@
+{% load bot_filters %} {% load static %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Trading Bots</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script
+      type="text/javascript"
+      src="https://s3.tradingview.com/tv.js"
+    ></script>
+    <style>
+      .bot-container {
+        margin: 20px;
+        padding: 20px;
+        border: 1px solid #ddd;
+      }
+      .chart-container {
+        height: 400px;
+        margin: 20px 0;
+      }
+      .error-message {
+        color: red;
+        padding: 10px;
+      }
+      .loading {
+        opacity: 0.5;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Trading Bots</h1>
+    <a href="{% url 'bot_create' %}" class="button">Create New Bot</a>
+
+    {% for bot in bots %}
+    <div class="bot-container">
+      <h2>{{ bot.name }}</h2>
+      <div class="metrics">
+        <p>Exchange: {{ bot.exchange }}</p>
+        <p>Trading Pair: {{ bot.trading_pair }}</p>
+        <p>Status: {{ bot.is_active|yesno:"Active,Inactive" }}</p>
+      </div>
+
+      <div id="chart_{{ bot.id }}" class="chart-container">
+        <div class="loading">Loading chart...</div>
+      </div>
+
+      <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+          try {
+            const exchange = "{{ bot.exchange }}".toUpperCase();
+            const pair = "{{ bot.trading_pair }}";
+            // Ensure valid format for TradingView
+            const symbol =
+              exchange === "BINANCE" ? "BINANCE:" + pair : "BINANCE:BTCUSDT";
+
+            new TradingView.widget({
+              symbol: symbol,
+              interval: "1D", // Valid interval
+              timezone: "Etc/UTC",
+              theme: "light",
+              style: "1",
+              locale: "en",
+              toolbar_bg: "#f1f3f6",
+              enable_publishing: false,
+              allow_symbol_change: true,
+              container_id: "chart_{{ bot.id }}",
+              width: "100%",
+              height: 400,
+              // Remove unknown properties
+              supported_resolutions: [
+                "1",
+                "5",
+                "15",
+                "30",
+                "60",
+                "240",
+                "1D",
+                "1W",
+                "1M",
+              ],
+            });
+          } catch (error) {
+            console.error("TradingView error:", error);
+          }
+        });
+      </script>
+
+      {% if messages %} {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %} {% endif %} {% if bot.is_active %}
+      <a href="{% url 'bot_stop' bot.id %}" class="button">Stop Bot</a>
+      {% else %}
+      <a href="{% url 'bot_start' bot.id %}" class="button">Start Bot</a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </body>
+</html>

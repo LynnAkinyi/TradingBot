@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Create Trading Bot</title>
+  </head>
+  <body>
+    <h1>Create New Trading Bot</h1>
+    <form method="POST">
+      {% csrf_token %} {{ form.as_p }}
+      <button type="submit">Create Bot</button>
+    </form>
+    <a href="{% url 'bot_list' %}">Back to Bot List</a>
+  </body>
+</html>
